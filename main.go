@@ -83,7 +83,7 @@ func loadConfig() {
 		sectionName := "DB" + fmt.Sprintf("%d", i)
 		if connSection, ok := GetSection(sectionName); ok {
 			connStr, ok := connSection.GetValue("ConnStr")
-			fmt.Println("db [%s]", connStr)
+			fmt.Printf("Connect db [%s]\n", connStr)
 			if !ok {
 				fmt.Printf("[Warning] Section %s has no property ConnStr\n", sectionName)
 				continue
