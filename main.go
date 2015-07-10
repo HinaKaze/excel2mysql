@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/HinaKaze/initparse"
+	"github.com/go-sql-driver/mysql"
 	"github.com/tealeg/xlsx"
 	"os"
-	"palmjoi.com/fantasyrealm/mysql"
 	"path/filepath"
 	"strings"
 )
@@ -56,9 +57,9 @@ func main() {
 }
 
 func loadConfig() {
-	DefaultParse("./config.cfg")
+	initparse.DefaultParse("./config.cfg")
 
-	if paths, ok := GetSection("Path"); ok {
+	if paths, ok := initparse.GetSection("Path"); ok {
 		excelRoot, _ = paths.GetValue("excelRoot")
 		exportRoot, _ = paths.GetValue("exportRoot")
 	}
@@ -66,7 +67,7 @@ func loadConfig() {
 	filterMap["default"] = &excelFilter{"default", -1, -1, -1, -1}
 	for i := 1; i < 1024; i++ {
 		sectionName := "Filter" + fmt.Sprintf("%d", i)
-		if filters, ok := GetSection(sectionName); ok {
+		if filters, ok := initparse.GetSection(sectionName); ok {
 			filename, _ := filters.GetValue("filename")
 			rBegin := filters.GetIntValue("rBegin")
 			rEnd := filters.GetIntValue("rEnd")
@@ -81,7 +82,7 @@ func loadConfig() {
 	//load db conn
 	for i := 1; i < 1024; i++ {
 		sectionName := "DB" + fmt.Sprintf("%d", i)
-		if connSection, ok := GetSection(sectionName); ok {
+		if connSection, ok := initparse.GetSection(sectionName); ok {
 			connStr, ok := connSection.GetValue("ConnStr")
 			fmt.Printf("Connect db [%s]\n", connStr)
 			if !ok {
@@ -128,7 +129,9 @@ func export(excelFile *xlsx.File, exportFile *os.File, filter *excelFilter) {
 			break
 		}
 		for _, cell := range filter.Cells(row.Cells) {
-			rowStr += cell.String() + "\t"
+			escapeStr := strings.Replace(cell.Value, `"`, `\"`, -1)
+			rowStr += escapeStr + "\t"
+			//rowStr += cell.String() + "\t"
 		}
 		exportFile.WriteString(rowStr + "\r\n")
 	}
